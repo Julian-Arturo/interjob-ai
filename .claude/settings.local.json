@@ -6,7 +6,17 @@
       "Bash(npm run server:*)",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(cat:*)",
+      "Bash(git rm:*)",
+      "Bash(npm i:*)",
+      "Bash(vercel --prod:*)",
+      "Bash(vercel login)",
+      "Bash(vercel env add:*)",
+      "Bash(vercel env rm:*)"
     ],
     "deny": [],
     "ask": []

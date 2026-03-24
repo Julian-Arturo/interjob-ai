@@ -398,6 +398,23 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
         {status} | Modo: <strong>{mode.toUpperCase()}</strong>
       </div>
 
+      {!settings.apiKey && (
+        <div className="section-block" style={{
+          background: 'rgba(239, 68, 68, 0.1)',
+          borderLeft: '4px solid #ef4444',
+          padding: '1rem'
+        }}>
+          <div className="block-label" style={{ color: '#ef4444' }}>
+            ⚠️ CONFIGURACIÓN REQUERIDA
+          </div>
+          <div className="block-text" style={{ color: '#fca5a5' }}>
+            Debes configurar tu OpenAI API Key personal en ⚙️ Opciones para usar la aplicación.
+            <br />
+            Obtén tu key en: <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa', textDecoration: 'underline'}}>platform.openai.com/api-keys</a>
+          </div>
+        </div>
+      )}
+
       <div className="controls">
         <button
           className={`btn-listen ${isListening ? 'listening' : ''}`}
@@ -489,7 +506,7 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
             <h2 className="modal-title">Configuración</h2>
             
             <div className="form-group">
-              <label>OpenAI API Key (GPT-4o)</label>
+              <label>OpenAI API Key (GPT-4o) - REQUERIDA</label>
               <input
                 type="password"
                 name="apiKey"
@@ -497,6 +514,22 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
                 onChange={handleSettingsChange}
                 placeholder="sk-proj-..."
               />
+              <small style={{
+                display: 'block',
+                marginTop: '0.5rem',
+                color: 'var(--text-secondary)',
+                fontSize: '0.85rem'
+              }}>
+                Tu API key se almacena solo en tu navegador (localStorage). Obtén una en{' '}
+                <a
+                  href="https://platform.openai.com/api-keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{color: 'var(--accent-cyan)', textDecoration: 'underline'}}
+                >
+                  platform.openai.com/api-keys
+                </a>
+              </small>
             </div>
             
             <div className="form-group">

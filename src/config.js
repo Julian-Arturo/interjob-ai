@@ -60,4 +60,5 @@ export const FILLER_PHRASES = [
 
 // ===== CONSTANTS =====
 export const SILENCE_DELAY = 1800; // 1.8 seconds
-export const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+// Users must provide their own OpenAI API key for security
+export const API_KEY = '';
