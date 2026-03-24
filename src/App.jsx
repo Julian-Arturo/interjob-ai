@@ -257,7 +257,8 @@ function App() {
     // Customized prompt based on mode
     let taskInstructions = `1. Identifica qué preguntó/dijo el reclutador (IGNORA mi voz). Tradúcelo en 1 oración simple.
 2. Escribe una respuesta excelente y CORTA en inglés (máx 2-3 oraciones).
-3. Escribe EXACTAMENTE esa misma respuesta en inglés, pero usando fonética española para que yo la lea tal cual suena (ej: "Ai jaf ecspiriens").`;
+3. Traduce esa respuesta al español para que entienda qué significa.
+4. Escribe EXACTAMENTE esa misma respuesta en inglés, pero usando fonética española para que yo la lea tal cual suena (ej: "Ai jaf ecspiriens").`;
 
     if (isTechMode) {
       taskInstructions = `1. Traduce la pregunta técnica del reclutador (ignorando mi voz) en español e inglés.
@@ -297,6 +298,7 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
 }` : `{
   "pregunta_es": "traducción brevísima de la pregunta",
   "respuesta_en": "respuesta en inglés al grano",
+  "respuesta_es": "traducción de la respuesta_en al español",
   "fonetica": "la respuesta_en escrita tal cual suena en fonética española"
 }`}`;
 
@@ -507,6 +509,15 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
             <div className="block-text highlight-text">
               {result.respuesta_oral_en || result.respuesta_en}
             </div>
+
+            {result.respuesta_es && (
+              <>
+                <div className="block-label" style={{marginTop: '1rem', color: 'var(--accent-green)'}}>ESPAÑOL (Significado):</div>
+                <div className="block-text" style={{fontSize: '1.2rem', color: 'var(--text-secondary)'}}>
+                  {result.respuesta_es}
+                </div>
+              </>
+            )}
 
             <div className="block-label" style={{marginTop: '1.5rem', color: 'var(--accent-pink)'}}>PRONUNCIACIÓN:</div>
             <div className="block-text phonetic-text">{result.fonetica}</div>
