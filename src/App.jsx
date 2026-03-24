@@ -7,7 +7,10 @@ import {
   getModeInstructions,
   SILENCE_DELAY,
   API_KEY as DEFAULT_API_KEY,
-  FILLER_PHRASES
+  FILLER_PHRASES,
+  AI_PROVIDERS,
+  DEFAULT_PROVIDER,
+  DEFAULT_MODEL
 } from './config';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -30,7 +33,10 @@ function App() {
     const saved = localStorage.getItem('interjob_settings');
     if (saved) return JSON.parse(saved);
     return {
+      provider: DEFAULT_PROVIDER,
+      model: DEFAULT_MODEL,
       apiKey: DEFAULT_API_KEY || '',
+      customApiUrl: '',
       profile: DEFAULT_PROFILE,
       vacancy: DEFAULT_JOB
     };
@@ -222,7 +228,10 @@ function App() {
 
   const handleAnalyze = async (text) => {
     if (!text || text.trim().length === 0) return;
-    if (!settings.apiKey) {
+
+    // Validar API key solo si el proveedor la requiere
+    const currentProvider = AI_PROVIDERS[settings.provider] || AI_PROVIDERS.openai;
+    if (currentProvider.requiresKey && !settings.apiKey) {
       updateStatus('⚠️ Configura tu API Key en opciones', 'error');
       return;
     }
@@ -303,8 +312,10 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          provider: settings.provider || 'openai',
+          model: settings.model || 'gpt-4o',
           apiKey: settings.apiKey,
-          model: 'gpt-4o',
+          customApiUrl: settings.customApiUrl,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `Transcripción de audio (Reclutador y Yo mezclados): "${text}"` }
@@ -398,7 +409,7 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
         {status} | Modo: <strong>{mode.toUpperCase()}</strong>
       </div>
 
-      {!settings.apiKey && (
+      {AI_PROVIDERS[settings.provider]?.requiresKey && !settings.apiKey && (
         <div className="section-block" style={{
           background: 'rgba(239, 68, 68, 0.1)',
           borderLeft: '4px solid #ef4444',
@@ -408,9 +419,13 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
             ⚠️ CONFIGURACIÓN REQUERIDA
           </div>
           <div className="block-text" style={{ color: '#fca5a5' }}>
-            Debes configurar tu OpenAI API Key personal en ⚙️ Opciones para usar la aplicación.
+            Debes configurar tu API Key de {AI_PROVIDERS[settings.provider]?.name} en ⚙️ Opciones.
             <br />
-            Obtén tu key en: <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa', textDecoration: 'underline'}}>platform.openai.com/api-keys</a>
+            {settings.provider === 'ollama' ? (
+              <>Ollama no requiere API key. <a href="#" onClick={() => setIsSettingsOpen(true)} style={{color: '#60a5fa', textDecoration: 'underline'}}>Configurar</a></>
+            ) : (
+              <>Obtén tu key en: <a href={settings.provider === 'anthropic' ? 'https://console.anthropic.com/settings/keys' : 'https://platform.openai.com/api-keys'} target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa', textDecoration: 'underline'}}>{settings.provider === 'anthropic' ? 'console.anthropic.com' : 'platform.openai.com'}</a></>
+            )}
           </div>
         </div>
       )}
@@ -504,9 +519,75 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setIsSettingsOpen(false)}>×</button>
             <h2 className="modal-title">Configuración</h2>
-            
+
             <div className="form-group">
-              <label>OpenAI API Key (GPT-4o) - REQUERIDA</label>
+              <label>Proveedor de IA</label>
+              <select
+                name="provider"
+                value={settings.provider}
+                onChange={handleSettingsChange}
+                style={{
+                  width: '100%',
+                  background: 'rgba(0,0,0,0.2)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '12px',
+                  padding: '0.875rem',
+                  color: 'white',
+                  fontFamily: 'var(--font-family)',
+                  fontSize: '1rem',
+                  cursor: 'pointer'
+                }}
+              >
+                {Object.entries(AI_PROVIDERS).map(([key, provider]) => (
+                  <option key={key} value={key} style={{background: '#1a1a1a', color: 'white'}}>
+                    {provider.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Modelo</label>
+              <select
+                name="model"
+                value={settings.model}
+                onChange={handleSettingsChange}
+                style={{
+                  width: '100%',
+                  background: 'rgba(0,0,0,0.2)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '12px',
+                  padding: '0.875rem',
+                  color: 'white',
+                  fontFamily: 'var(--font-family)',
+                  fontSize: '1rem',
+                  cursor: 'pointer'
+                }}
+              >
+                {(AI_PROVIDERS[settings.provider]?.models || AI_PROVIDERS.openai.models).map((model) => (
+                  <option key={model} value={model} style={{background: '#1a1a1a', color: 'white'}}>
+                    {model}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {settings.provider === 'custom' && (
+              <div className="form-group">
+                <label>URL de API Personalizada</label>
+                <input
+                  type="text"
+                  name="customApiUrl"
+                  value={settings.customApiUrl}
+                  onChange={handleSettingsChange}
+                  placeholder="http://localhost:8080/v1/chat/completions"
+                />
+              </div>
+            )}
+
+            {AI_PROVIDERS[settings.provider]?.requiresKey && (
+              <div className="form-group">
+                <label>API Key - REQUERIDA</label>
               <input
                 type="password"
                 name="apiKey"
@@ -522,15 +603,16 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
               }}>
                 Tu API key se almacena solo en tu navegador (localStorage). Obtén una en{' '}
                 <a
-                  href="https://platform.openai.com/api-keys"
+                  href={settings.provider === 'anthropic' ? 'https://console.anthropic.com/settings/keys' : 'https://platform.openai.com/api-keys'}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{color: 'var(--accent-cyan)', textDecoration: 'underline'}}
                 >
-                  platform.openai.com/api-keys
+                  {settings.provider === 'anthropic' ? 'console.anthropic.com' : 'platform.openai.com'}
                 </a>
               </small>
             </div>
+            )}
             
             <div className="form-group">
               <label>Perfil del Candidato</label>

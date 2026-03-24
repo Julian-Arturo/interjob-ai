@@ -58,7 +58,36 @@ export const FILLER_PHRASES = [
   }
 ];
 
+// ===== AI PROVIDERS =====
+export const AI_PROVIDERS = {
+  openai: {
+    name: 'OpenAI (GPT-4o)',
+    apiUrl: 'https://api.openai.com/v1/chat/completions',
+    requiresKey: true,
+    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo']
+  },
+  anthropic: {
+    name: 'Anthropic (Claude)',
+    apiUrl: 'https://api.anthropic.com/v1/messages',
+    requiresKey: true,
+    models: ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229']
+  },
+  ollama: {
+    name: 'Ollama (Local - Sin límites)',
+    apiUrl: 'http://localhost:11434/api/chat',
+    requiresKey: false,
+    models: ['llama3.2', 'mistral', 'codellama', 'qwen2.5']
+  },
+  custom: {
+    name: 'API Personalizada',
+    apiUrl: '',
+    requiresKey: true,
+    models: []
+  }
+};
+
 // ===== CONSTANTS =====
 export const SILENCE_DELAY = 1800; // 1.8 seconds
-// Users must provide their own OpenAI API key for security
 export const API_KEY = '';
+export const DEFAULT_PROVIDER = 'openai';
+export const DEFAULT_MODEL = 'gpt-4o';
