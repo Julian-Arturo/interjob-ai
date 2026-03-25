@@ -255,22 +255,31 @@ function App() {
     const modeInstructions = getModeInstructions(currentMode);
     
     // Customized prompt based on mode
-    let taskInstructions = `1. Identifica qué preguntó/dijo el reclutador (IGNORA mi voz). Tradúcelo en 1 oración simple.
-2. Escribe una respuesta excelente y CORTA en inglés (máx 2-3 oraciones).
-3. Traduce esa respuesta al español para que entienda qué significa.
-4. Escribe EXACTAMENTE esa misma respuesta en inglés, pero usando fonética española para que yo la lea tal cual suena (ej: "Ai jaf ecspiriens").`;
+    let taskInstructions = `1. IDENTIFICA si hay una PREGUNTA del reclutador en la transcripción. Si NO hay pregunta clara o solo escuchas al candidato hablando, NO generes respuesta.
+2. Si SÍ hay pregunta del reclutador: Tradúcela en 1 oración simple en español.
+3. Escribe una respuesta excelente y CORTA en inglés (máx 2-3 oraciones) basada en el perfil del candidato.
+4. Traduce esa respuesta al español para que el candidato entienda qué significa.
+5. Escribe EXACTAMENTE esa misma respuesta en inglés, pero usando fonética española para que el candidato la lea tal cual suena (ej: "Ai jaf ecspiriens").`;
 
     if (isTechMode) {
-      taskInstructions = `1. Traduce la pregunta técnica del reclutador (ignorando mi voz) en español e inglés.
-2. OBLIGATORIO: Proporciona un fragmento de código Flutter/Dart COMPLETO y FUNCIONAL (Flutter 3.27+) que resuelva el problema. NUNCA omitas el código.
-3. Explica la solución en español e inglés (máx 2-3 oraciones cada idioma), mencionando Big O si aplica.
-4. Proporciona la respuesta oral en inglés con fonética española para leerla.`;
+      taskInstructions = `1. IDENTIFICA si hay una PREGUNTA TÉCNICA del reclutador. Si NO hay pregunta o solo escuchas al candidato, NO generes respuesta.
+2. Si SÍ hay pregunta técnica: Tradúcela en español e inglés.
+3. OBLIGATORIO: Proporciona un fragmento de código Flutter/Dart COMPLETO y FUNCIONAL (Flutter 3.27+) que resuelva el problema. NUNCA omitas el código.
+4. Explica la solución en español e inglés (máx 2-3 oraciones cada idioma), mencionando Big O si aplica.
+5. Proporciona la respuesta oral en inglés con fonética española para leerla.`;
     }
 
     const systemPrompt = `Eres mi asistente secreto de entrevistas.
 PERFIL: ${settings.profile}
 VACANTE: ${settings.vacancy}
 MODO ACTIVO: ${modeInstructions}
+
+IMPORTANTE - FILTRADO DE VOZ:
+- En la transcripción hay 2 voces mezcladas: el RECLUTADOR y YO (el candidato)
+- Tu trabajo es SOLO responder a las PREGUNTAS del reclutador
+- IGNORA completamente lo que YO digo (mis respuestas, muletillas, "hmm", "well", etc.)
+- Si solo escuchas MI voz hablando o practicando, NO generes respuesta (devuelve JSON vacío)
+- SOLO responde cuando detectes una PREGUNTA CLARA del reclutador
 
 TAREA PRIORIDAD ULTRA-VELOCIDAD:
 ${taskInstructions}
@@ -341,6 +350,16 @@ EJEMPLO DE RESPUESTA VÁLIDA EN MODO TÉCNICO:
       clearInterval(timeInterval);
       setFillerPhrase(null);
       setProcessingTime(0);
+
+      // Validar que haya contenido útil (la IA detectó una pregunta)
+      if (!parsed.pregunta_es || parsed.pregunta_es.trim() === '') {
+        console.log('⚠️ No se detectó pregunta del reclutador, ignorando...');
+        updateStatus('🎤 Escuchando...', 'listening');
+        finalTranscriptRef.current = '';
+        interimTranscriptRef.current = '';
+        setTranscript('');
+        return;
+      }
 
       setResult(parsed);
       updateStatus('✅ Listo', 'success');
